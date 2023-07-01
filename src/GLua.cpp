@@ -443,9 +443,6 @@ GMOD_MODULE_OPEN()
 	LUA->SetField(-2, "__gc");
 	LUA->Pop();
 
-	LUA->PushCFunction(UpdateChecker::doVersionCheck);
-	LUA->Call(0, 0);
-
 	return 1;
 }
 
