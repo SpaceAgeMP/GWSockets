@@ -45,7 +45,7 @@ solution "GWSockets"
 		links { "libcrypto", "libssl", "boost_system", "crypt32" }
 	elseif os.target() == "macosx" then
 		platform = "osx"
-		links { "ssl", "boost_system" }
+		links { "ssl", "crypto", "boost_system" }
 	elseif os.target() == "linux" then
 		platform = "linux"
 		links { "ssl", "crypto", "boost_system", "pthread", "dl" }
