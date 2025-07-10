@@ -211,14 +211,20 @@ void GWSocket::hostResolvedStep(const boost::system::error_code &ec, tcp::resolv
 	}
 }
 
-void GWSocket::open()
+void GWSocket::open(bool shouldClearQueue)
 {
 	auto expected = STATE_DISCONNECTED;
 	if (!this->state.compare_exchange_strong(expected, STATE_CONNECTING))
 	{
 		return;
 	}
-	this->clearQueue();
+
+	// Clear the queue if it was requested.
+	if (shouldClearQueue)
+	{
+		this->clearQueue();
+	}
+	
 	// Look up the domain name
 	this->resolver.async_resolve(host, std::to_string(port), boost::bind(&GWSocket::hostResolvedStep, this, boost::asio::placeholders::error, boost::asio::placeholders::iterator));
 }
@@ -327,4 +333,14 @@ bool GWSocket::setHeader(std::string key, std::string value)
 	}
 	this->headers[key] = value;
 	return true;
+}
+
+void GWSocket::setPerMessageDeflate(bool value)
+{
+	perMessageDeflate = value;
+}
+
+void GWSocket::setDisableContextTakeover(bool value)
+{
+	disableContextTakeover = value;
 }

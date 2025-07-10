@@ -37,6 +37,23 @@ require("gwsockets")
   GWSockets.addVerifyPath( "/etc/ssl/certs" )
   ```
 
+* If you would like to enable the `permessage-deflate` extension which allows you to send and receive compressed messages, you can enable it with the following functions:
+
+  ```LUA
+  -- Do note this will only be enabled if the websocket server supports permessage-deflate and enables it during handshake.
+  WEBSOCKET:setMessageCompression(true)
+  ```
+
+* You can also disable context takeover during compression, which will prevent re-using the same compression context over multiple messages.
+  This will decrease the memory usage at the cost of a worse compression ratio.
+
+  ```LUA
+  WEBSOCKET:setDisableContextTakeover(true)
+  ```
+
+ *WARNING:* Enabling compression over encrypted connections (`WSS://`) may make you vulnerable to [CRIME](https://en.wikipedia.org/wiki/CRIME)/[BREACH](https://en.wikipedia.org/wiki/BREACH) attacks.
+            Make sure you know what you are doing, or avoid sending sensitive information over websocket messages.
+
 * Next add any cookies or headers you would like to send with the initial request (Optional)
 
   ```LUA
@@ -67,8 +84,12 @@ require("gwsockets")
 * Lastly open the connection
 
   ```LUA
-  WEBSOCKET:open()
+  WEBSOCKET:open( shouldClearQueue = true )
   ```
+  
+  *NOTE:* By default, opening a connection will clear the queued messages. This is due to the fact there
+  is no way of knowing what's in the queue, and what has been received by the remote. If you would like to
+  disable this, you may use `open(false)`.
   
 * Once the socket has been opened you can send messages using the `write` function
 

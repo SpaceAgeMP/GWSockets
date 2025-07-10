@@ -168,6 +168,9 @@ LUA_FUNCTION(socketOpen)
 	{
 		LUA->ThrowError("Cannot open socket that is already connected");
 	}
+
+	const bool shouldClearQueue = LUA->IsType(2, Type::BOOL) ? LUA->GetBool(2) : true;
+	
 	//As soon as the socket starts connecting we want to keep a reference to the table so that it does not
 	//get garbage collected, so that the callbacks can be called.
 	if (socketTableReferences.find(socket) == socketTableReferences.end())
@@ -175,7 +178,7 @@ LUA_FUNCTION(socketOpen)
 		LUA->Push(1);
 		socketTableReferences[socket] = LUA->ReferenceCreate();
 	}
-	socket->open();
+	socket->open(shouldClearQueue);
 	return 0;
 }
 
@@ -215,6 +218,34 @@ LUA_FUNCTION(socketSetHeader)
 	{
 		LUA->ThrowError("Invalid header name or value");
 	}
+	return 0;
+}
+
+LUA_FUNCTION(socketSetMessageCompression)
+{
+	GWSocket* socket = getCppObject<GWSocket>(LUA);
+	if (socket->state != STATE_DISCONNECTED)
+	{
+		LUA->ThrowError("Cannot set message compression for an already connected websocket");
+	}
+
+	LUA->CheckType(2, Type::BOOL);
+	socket->setPerMessageDeflate(LUA->GetBool(2));
+
+	return 0;
+}
+
+LUA_FUNCTION(socketSetDisableContextTakeover)
+{
+	GWSocket* socket = getCppObject<GWSocket>(LUA);
+	if (socket->state != STATE_DISCONNECTED)
+	{
+		LUA->ThrowError("Cannot set compression takeover for an already connected websocket");
+	}
+
+	LUA->CheckType(2, Type::BOOL);
+	socket->setDisableContextTakeover(LUA->GetBool(2));
+
 	return 0;
 }
 
@@ -421,6 +452,10 @@ GMOD_MODULE_OPEN()
 	LUA->SetField(-2, "setCookie");
 	LUA->PushCFunction(socketSetHeader);
 	LUA->SetField(-2, "setHeader");
+	LUA->PushCFunction(socketSetMessageCompression);
+	LUA->SetField(-2, "setMessageCompression");
+	LUA->PushCFunction(socketSetDisableContextTakeover);
+	LUA->SetField(-2, "setDisableContextTakeover");
 	LUA->PushCFunction(socketIsConnected);
 	LUA->SetField(-2, "isConnected");
 	LUA->PushCFunction(socketClearQueue);
